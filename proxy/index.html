@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slurm Final</title>
+    <style>
+        #successMessage {
+            color: green;
+            display: none;
+        }
+        #errorMessage {
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Приложение для заметок</h1>
+    <p id="successMessage"></p>
+    <p id="errorMessage">Backend is not available.</p>
+    <input type="text" id="entryInput" placeholder="Введите значение..." />
+    <button onclick="addEntry()">Добавить запись</button>
+    <h2>Все записи:</h2>
+    <button onclick="getEntries()">Показать все записи</button>
+    <ul id="entriesList"></ul>
+
+    <script>
+
+	const backendUrl = '';     
+
+        function addEntry() {
+            const value = document.getElementById('entryInput').value;
+            fetch(`${backendUrl}/add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ value })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Added:', data);
+                showSuccessMessage(`Added: ${JSON.stringify(data)}`);
+                document.getElementById('entryInput').value = ''; 
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage();
+            });
+        }
+
+        function getEntries() {
+            fetch(`${backendUrl}/entries`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const list = document.getElementById('entriesList');
+                    const errorMessage = document.getElementById('errorMessage');
+                    list.innerHTML = '';
+                    errorMessage.style.display = 'none'; // Hide error message
+
+                    data.forEach(entry => {
+                        const li = document.createElement('li');
+                        li.textContent = entry.value;
+                        list.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorMessage();
+                });
+        }
+
+        function showSuccessMessage(message) {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            successMessage.style.display = 'block'; 
+            setTimeout(() => {
+                successMessage.style.display = 'none'; 
+            }, 3000);
+        }
+
+        function showErrorMessage() {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.style.display = 'block'; 
+        }
+    </script>
+</body>
+</html>
